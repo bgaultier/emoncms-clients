@@ -30,7 +30,6 @@ const int threshold = 600;
 
 DHT dht(DHT22SensorPin, DHT22);
 
-
 // humidity and temperature
 float temperature = 0, humidity = 0;
 
@@ -42,7 +41,7 @@ long pulseCount = 0;
 unsigned long pulseTime,lastTime;
 
 // power and energy
-double power = 0;
+float power = 0;
 
 // number of readings we made since the last packet sent :
 byte readings = 0;                   
@@ -60,11 +59,8 @@ IPAddress subnet(255, 255, 0, 0);
 // initialize the library instance:
 EthernetClient client;
 
-char server[] = "www.baptistegaultier.fr"; //emoncms URL
-
-unsigned long lastConnectionTime = 0;          // last time you connected to the server, in milliseconds
+char server[] = "www.baptistegaultier.fr";     //emoncms URL
 boolean lastConnected = false;                 // state of the connection last time through the main loop
-const unsigned long postingInterval = 4*1000;  // delay between updates, in milliseconds
 
 void setup() {
   // start serial port:
@@ -74,7 +70,7 @@ void setup() {
   // give the ethernet module and DHT22 sensor time to boot up:
   delay(1000);
   // Display a welcome message
-  Serial.println("emoncms client v0.1 starting...");
+  Serial.println("HTTP emoncms client v0.1 starting...");
   
   // attempt a DHCP connection:
   Serial.println("Attempting to get an IP address using DHCP:");
@@ -108,15 +104,15 @@ void loop() {
     //Print the values
     Serial.print("Power : ");
     Serial.print(power,2);
-    Serial.print("W, ");
+    Serial.print("W");
   }
   
   // if there's incoming data from the net connection.
   // send it out the serial port.  This is for debugging
   // purposes only:
   if (client.available()) {
-    char c = client.read();
-    Serial.print(c);
+    client.flush();
+    client.stop();
   }
   
   // if there's no net connection, but there was one last time
@@ -130,7 +126,7 @@ void loop() {
   // if you're not connected, and at least four seconds have
   // passed since your last connection, then connect again and
   // send data:
-  if(!client.connected() && ((unsigned long)(millis() - lastConnectionTime) >= postingInterval) && power >= 0 && readings >= 2) {
+  if(!client.connected() && power >= 0 && readings >= 2) {
     temperature = dht.readTemperature();
     humidity = dht.readHumidity();
     Serial.print("Sending data to emoncms");
@@ -170,9 +166,6 @@ void sendData(float power, float temperature, float humidity) {
     client.println("User-Agent: Arduino-ethernet");
     client.println("Connection: close");
     client.println();
-
-    // note the time that the connection was made:
-    lastConnectionTime = millis();
   } 
   else {
     // if you couldn't make a connection:
