@@ -82,9 +82,13 @@ void setup() {
   // print the Ethernet board/shield's IP address:
   Serial.print("My IP address: ");
   Serial.println(Ethernet.localIP());
+  
+  wdt_enable(WDTO_8S); 
 }
 
 void loop() {
+  wdt_reset();
+  
   // if the meter flash, increment the counter
   if (analogRead(lightSensorPin) > threshold) {
     while (analogRead(lightSensorPin) > threshold) {}
