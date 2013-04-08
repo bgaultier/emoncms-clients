@@ -127,8 +127,8 @@ void loop() {
     client.stop();
   }
 
-  // if you're not connected, and at least four seconds have
-  // passed since your last connection, then connect again and
+  // if you're not connected, and power is greater than 0 W and
+  // we have two readings in a row, then connect again and
   // send data:
   if(!client.connected() && power >= 0 && readings >= 2) {
     temperature = dht.readTemperature();
